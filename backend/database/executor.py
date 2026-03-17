@@ -9,7 +9,17 @@ Every operation is logged regardless of success or failure.
 from database.connection import get_connection
 from database.validator import validate_query, extract_table_names
 from database.logger import log_operation
+import datetime  # Ensure this is imported at the top
 
+def serialize_dates(data):
+    """Recursively converts datetime objects to strings in a list or dict."""
+    if isinstance(data, list):
+        return [serialize_dates(item) for item in data]
+    if isinstance(data, dict):
+        return {k: serialize_dates(v) for k, v in data.items()}
+    if isinstance(data, (datetime.datetime, datetime.date)):
+        return data.isoformat()
+    return data
 
 def execute_query(query: str, params: tuple = None) -> dict:
     """
@@ -42,6 +52,7 @@ def execute_query(query: str, params: tuple = None) -> dict:
             status="FAILED",
             error_message=validation["error"]
         )
+        print('validation failed')
         return {
             "success": False,
             "operation": None,
@@ -55,6 +66,7 @@ def execute_query(query: str, params: tuple = None) -> dict:
     primary_table = tables[0] if tables else "unknown"
 
     # ── Step 2: Execute the query ────────────────────────────────────
+    print('Starting to execute query')
     conn = None
     try:
         conn = get_connection()
@@ -72,8 +84,10 @@ def execute_query(query: str, params: tuple = None) -> dict:
         }
 
         if operation == "SELECT":
+            print('running fetchall')
             rows = cursor.fetchall()
-            result["data"] = rows
+            # result["data"] = rows
+            result["data"] = serialize_dates(rows)
             result["rows_affected"] = len(rows)
 
         else:
@@ -92,6 +106,7 @@ def execute_query(query: str, params: tuple = None) -> dict:
 
         cursor.close()
         conn.close()
+        print('sending the result')
         return result
 
     except Exception as e:
@@ -112,7 +127,7 @@ def execute_query(query: str, params: tuple = None) -> dict:
             status="FAILED",
             error_message=error_msg
         )
-
+        print('Execution failed')
         return {
             "success": False,
             "operation": operation,

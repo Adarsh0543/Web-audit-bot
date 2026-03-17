@@ -60,7 +60,8 @@ def extract_table_names(query: str) -> list[str]:
     patterns = [
         r"\bFROM\s+`?(\w+)`?",
         r"\bINTO\s+`?(\w+)`?",
-        r"\bUPDATE\s+`?(\w+)`?",
+        # r"\bUPDATE\s+`?(\w+)`?",
+        r"(?i)^UPDATE\s+[`]?(\w+)[`]?",
         r"\bJOIN\s+`?(\w+)`?",
         r"\bDELETE\s+FROM\s+`?(\w+)`?"
     ]
@@ -83,11 +84,13 @@ def validate_query(query: str) -> dict:
         }
     """
     if not query or not query.strip():
+        print('empty query')
         return {"valid": False, "operation": None, "error": "Empty query."}
 
     # ── Check 1: Dangerous patterns ──────────────────────────────────
     for pattern in DANGEROUS_PATTERNS:
         if re.search(pattern, query, re.IGNORECASE):
+            print('dangerous pattern')
             return {
                 "valid": False,
                 "operation": None,
@@ -97,6 +100,7 @@ def validate_query(query: str) -> dict:
     # ── Check 2: Valid operation type ────────────────────────────────
     operation = get_operation_type(query)
     if not operation:
+        print('invalid operations')
         return {
             "valid": False,
             "operation": None,
@@ -107,6 +111,7 @@ def validate_query(query: str) -> dict:
     tables_in_query = extract_table_names(query)
 
     if not tables_in_query:
+        print('not whitelisted table')
         return {
             "valid": False,
             "operation": operation,
@@ -115,6 +120,8 @@ def validate_query(query: str) -> dict:
 
     for table in tables_in_query:
         if table not in ALLOWED_TABLES:
+            print(tables_in_query)
+            print('not present in allowed tables')
             return {
                 "valid": False,
                 "operation": operation,
