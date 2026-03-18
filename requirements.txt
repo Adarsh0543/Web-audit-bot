@@ -1,0 +1,32 @@
+# ── LangChain / LangGraph ─────────────────────────────────────────────
+langchain==1.2.10
+langchain-core==1.2.13
+langchain-groq==1.1.2
+langgraph==1.0.8
+langgraph-prebuilt==1.0.7
+
+# ── Groq LLM ─────────────────────────────────────────────────────────
+groq==0.37.1
+
+# ── FastAPI / Server ──────────────────────────────────────────────────
+fastapi==0.133.0
+uvicorn==0.41.0
+python-multipart==0.0.22
+
+# ── Web Scraping ──────────────────────────────────────────────────────
+playwright==1.58.0
+beautifulsoup4==4.14.3
+lxml==6.0.2
+httpx==0.28.1
+
+# ── Database ──────────────────────────────────────────────────────────
+mysql-connector-python==9.6.0
+
+# ── Content Analysis ─────────────────────────────────────────────────
+textstat==0.7.13
+
+# ── Utilities ────────────────────────────────────────────────────────
+python-dotenv==1.2.1
+pydantic==2.12.5
+pydantic-settings==2.13.0
+typing_extensions==4.15.0
