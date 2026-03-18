@@ -26,7 +26,7 @@ async def chat():
 
         # ── Exit condition ────────────────────────────────────────────
         if message.lower() in {"bye", "exit", "quit", "goodbye"}:
-            print("[Agent] Goodbye! 👋")
+            print("[Agent] Goodbye!")
             break
 
         if not message:

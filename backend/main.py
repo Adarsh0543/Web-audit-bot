@@ -1,48 +1,54 @@
+"""
+main.py
+────────
+FastAPI backend with continuous chat endpoint.
+Run with: python3 main.py
+"""
+
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from agent.graph import agent_graph
 from langchain_core.messages import HumanMessage
 import uvicorn
 
-from fastapi.middleware.cors import CORSMiddleware
-
 app = FastAPI(title="WebAudit AI Agent API")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with your actual domain
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Define the request structure
-class AuditRequest(BaseModel):
-    url: str
-    task: str = "analyze"
 
-@app.post("/audit")
-async def run_audit(request: AuditRequest):
+class ChatRequest(BaseModel):
+    message: str   # single message e.g. "do seo analysis for https://example.com"
+
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
     try:
-        # 1. Prepare the initial state
-        # We format the prompt just like your test() script did
-        input_state = {
-            "messages": [HumanMessage(content=f"{request.task} for {request.url}")],
-            "url": request.url
-        }
-
-        # 2. Invoke the graph
-        result = await agent_graph.ainvoke(input_state)
-
-        # 3. Return the final summary and any data stored in state
+        result = await agent_graph.ainvoke({
+            "messages": [HumanMessage(content=request.message)],
+        })
         return {
-            "summary": result["messages"][-1].content,
-            "seo_report": result.get("seo_report"),
+            "reply":               result["messages"][-1].content,
+            "seo_report":          result.get("seo_report"),
             "accessibility_report": result.get("accessibility_report"),
-            "content_report": result.get("content_report"),
-            "db_result": result.get("db_result")
+            "content_report":      result.get("content_report"),
+            "db_result":           result.get("db_result")
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

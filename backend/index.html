@@ -3,190 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAudit AI Dashboard</title>
+    <title>WebAudit AI</title>
     <style>
         :root {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #38bdf8;
-            --accent: #818cf8;
-            --text: #f1f5f9;
+            --bg:       #0f172a;
+            --card-bg:  #1e293b;
+            --input-bg: #0f172a;
+            --primary:  #38bdf8;
+            --accent:   #818cf8;
+            --text:     #f1f5f9;
             --text-dim: #94a3b8;
+            --border:   #334155;
+            --user-bubble:  #1d4ed8;
+            --agent-bubble: #1e293b;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
+            height: 100vh;
             display: flex;
-            justify-content: center;
-            padding: 40px 20px;
-            margin: 0;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
-
+        /* ── Header ── */
         header {
-            text-align: center;
-            margin-bottom: 40px;
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        h1 {
-            font-size: 2.5rem;
+        header h1 {
+            font-size: 1.3rem;
             background: linear-gradient(to right, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
         }
 
-        .search-box {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        header p {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 2px;
         }
 
-        .input-group {
+        /* ── Chat window ── */
+        #chatWindow {
+            flex: 1;
+            width: 100%;
+            max-width: 800px;
+            overflow-y: auto;
+            padding: 24px 16px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
         }
 
-        input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 14px;
-            border-radius: 8px;
-            color: white;
+        /* ── Messages ── */
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .message.user   { align-self: flex-end; align-items: flex-end; }
+        .message.agent  { align-self: flex-start; align-items: flex-start; }
+
+        .label {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message.user  .bubble { background: var(--user-bubble);  border-radius: 12px 12px 2px 12px; }
+        .message.agent .bubble { background: var(--agent-bubble); border-radius: 12px 12px 12px 2px; border: 1px solid var(--border); }
+
+        /* ── Typing indicator ── */
+        .typing .bubble {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            padding: 14px 18px;
+        }
+
+        .dot {
+            width: 8px; height: 8px;
+            background: var(--text-dim);
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40%            { transform: translateY(-6px); }
+        }
+
+        /* ── Input bar ── */
+        .input-bar {
+            width: 100%;
+            max-width: 800px;
+            padding: 16px;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        #msgInput {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: var(--text);
             font-size: 1rem;
             outline: none;
-            transition: border 0.3s;
+            transition: border 0.2s;
         }
 
-        input:focus {
-            border-color: var(--primary);
-        }
+        #msgInput:focus { border-color: var(--primary); }
 
-        button {
+        #msgInput::placeholder { color: var(--text-dim); }
+
+        #sendBtn {
             background: linear-gradient(to right, #0ea5e9, #6366f1);
             color: white;
             border: none;
-            padding: 16px;
-            border-radius: 8px;
+            padding: 14px 22px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: opacity 0.2s, transform 0.2s;
+            white-space: nowrap;
         }
 
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
+        #sendBtn:hover    { opacity: 0.9; transform: translateY(-1px); }
+        #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .results-area {
-            margin-top: 30px;
-            display: none;
-        }
-
-        .status {
+        /* ── Welcome message ── */
+        .welcome {
             text-align: center;
-            color: var(--primary);
+            color: var(--text-dim);
             font-size: 0.9rem;
-            margin-bottom: 15px;
-            font-weight: 500;
+            margin: auto;
+            padding: 40px;
+            line-height: 2;
         }
 
-        #output {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 12px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            border-left: 4px solid var(--primary);
-        }
-
-        .loader {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 10px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .welcome strong { color: var(--primary); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>WebAudit AI Bot</h1>
-        <p style="color: var(--text-dim)">Intelligent SEO & Accessibility Analysis</p>
-    </header>
-
-    <div class="search-box">
-        <div class="input-group">
-            <input type="text" id="url" placeholder="Enter URL (e.g. https://google.com)">
-            <input type="text" id="task" placeholder="What should I do? (e.g. analyze and save)">
-            <button id="runBtn" onclick="runAudit()">Run Audit</button>
-        </div>
+<header>
+    <div>
+        <h1>🔍 WebAudit AI</h1>
+        <p>Intelligent SEO & Accessibility Analysis</p>
     </div>
+</header>
 
-    <div id="resultsArea" class="results-area">
-        <div id="statusIndicator" class="status"></div>
-        <div id="output"></div>
+<div id="chatWindow">
+    <div class="welcome">
+        <strong>Welcome to WebAudit AI!</strong><br>
+        Type your request below to get started.<br><br>
+        Examples:<br>
+        • <em>do seo analysis for https://example.com</em><br>
+        • <em>full analysis for https://example.com</em><br>
+        • <em>fetch last 10 reports</em><br>
+        • <em>analyze and save https://example.com</em><br><br>
+        Type <strong>bye</strong> to end the session.
     </div>
 </div>
 
+<div class="input-bar">
+    <input
+        type="text"
+        id="msgInput"
+        placeholder="Type your request... (e.g. do seo analysis for https://example.com)"
+        onkeydown="if(event.key==='Enter') sendMessage()"
+        autofocus
+    />
+    <button id="sendBtn" onclick="sendMessage()">Send ➤</button>
+</div>
+
 <script>
-    async function runAudit() {
-        const url = document.getElementById('url').value;
-        const task = document.getElementById('task').value;
-        const btn = document.getElementById('runBtn');
-        const resultsArea = document.getElementById('resultsArea');
-        const output = document.getElementById('output');
-        const status = document.getElementById('statusIndicator');
+    const chatWindow = document.getElementById('chatWindow');
+    const msgInput   = document.getElementById('msgInput');
+    const sendBtn    = document.getElementById('sendBtn');
 
-        if(!url) return alert("Please enter a URL");
+    // ── Add a message bubble to the chat ─────────────────────────────
+    function addMessage(role, text) {
+        // Remove welcome message on first chat
+        const welcome = chatWindow.querySelector('.welcome');
+        if (welcome) welcome.remove();
 
-        // UI State: Loading
-        btn.disabled = true;
-        resultsArea.style.display = 'block';
-        status.innerHTML = '<div class="loader"></div> Agent is thinking...';
-        output.innerText = "";
+        const wrapper = document.createElement('div');
+        wrapper.className = `message ${role}`;
+
+        const label  = document.createElement('div');
+        label.className = 'label';
+        label.textContent = role === 'user' ? 'You' : 'Agent';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = text;
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return wrapper;
+    }
+
+    // ── Show typing indicator ─────────────────────────────────────────
+    function showTyping() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message agent typing';
+        wrapper.id = 'typingIndicator';
+
+        const label  = document.createElement('div');
+        label.className = 'label';
+        label.textContent = 'Agent';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    // ── Remove typing indicator ───────────────────────────────────────
+    function removeTyping() {
+        const el = document.getElementById('typingIndicator');
+        if (el) el.remove();
+    }
+
+    // ── Send message ──────────────────────────────────────────────────
+    async function sendMessage() {
+        const message = msgInput.value.trim();
+        if (!message) return;
+
+        // Exit on bye
+        if (['bye', 'exit', 'quit', 'goodbye'].includes(message.toLowerCase())) {
+            addMessage('user', message);
+            addMessage('agent', 'Goodbye!  Refresh the page to start a new session.');
+            msgInput.disabled = true;
+            sendBtn.disabled  = true;
+            return;
+        }
+
+        // Show user message
+        addMessage('user', message);
+        msgInput.value   = '';
+        sendBtn.disabled = true;
+        showTyping();
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/audit', {
-                method: 'POST',
+            const response = await fetch('http://127.0.0.1:8000/chat', {
+                method:  'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ url, task })
+                body:    JSON.stringify({ message })
             });
-            
-            if (!response.ok) throw new Error("Server Error");
+
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
             const data = await response.json();
-            
-            status.innerHTML = "✅ Analysis Complete";
-            output.innerText = data.summary;
+            removeTyping();
+            addMessage('agent', data.reply);
 
         } catch (err) {
-            status.innerHTML = "❌ Error occurred";
-            output.innerText = "Failed to reach the backend. Make sure main.py is running on port 8000.";
+            removeTyping();
+            addMessage('agent', ` Error: ${err.message}\nMake sure the backend is running on port 8000.`);
         } finally {
-            btn.disabled = false;
+            sendBtn.disabled = false;
+            msgInput.focus();
         }
     }
 </script>
