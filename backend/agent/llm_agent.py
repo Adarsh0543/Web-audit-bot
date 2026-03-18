@@ -53,10 +53,14 @@ Rules for plan:
 - If user says "analyze and save"       → ["seo", "accessibility", "content", "db_save", "summary"]
 
 Rules for db_query (ONLY if user asks to fetch data):
-- report_type: Must be one of "seo", "accessibility", "content", or "sites", choose any one of report_type based on users need.`
-- condition: A valid SQL WHERE clause based on the user's request (e.g., "url LIKE '%example.com%'"). Leave empty string "" if no specific condition.
-
-Return ONLY valid JSON without markdown code blocks.
+- report_type: Must be one of "all", "seo", "accessibility", "content", "sites"
+  - "all"           → fetch all 3 reports per site (use this as DEFAULT for fetch)
+  - "seo"           → only seo reports
+  - "accessibility" → only accessibility reports
+  - "content"       → only content reports
+  - "sites"         → only site overview
+- condition: A valid SQL WHERE clause (e.g., "s.url LIKE '%example.com%'"). 
+             Leave empty string "" if no specific condition.
 """
 
 # ── Summary prompt ────────────────────────────────────────────────────
