@@ -1,3 +1,13 @@
+"""
+database/setup.py
+─────────────────
+Creates the database and all required tables.
+Run this ONCE before starting the application.
+
+Usage:
+    python database/setup.py
+"""
+
 import mysql.connector
 from mysql.connector import Error
 import os
@@ -7,35 +17,40 @@ load_dotenv()
 
 
 def create_database():
-
+    """
+    Connects to MySQL (without selecting a DB)
+    and creates the seo_agent_db database if it doesn't exist.
+    """
     try:
         # Connect WITHOUT specifying a database first
         conn = mysql.connector.connect(
-            host="localhost",
-            port= 3306,
-            user= "root",
+            host=os.getenv("DB_HOST", "localhost"),
+            port=int(os.getenv("DB_PORT", 3306)),
+            user=os.getenv("DB_USER", "root"),
             password=os.getenv("DB_PASSWORD", "")
         )
-
         cursor = conn.cursor()
-        db_name = "seo_agent_db"
+        db_name = os.getenv("DB_NAME", "seo_agent_db")
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{db_name}`")
-        print(f" Database '{db_name}' is ready.")
+        print(f"Database '{db_name}' is ready.")
         cursor.close()
         conn.close()
     except Error as e:
-        raise Exception(f" Could not create database: {e}")
+        raise Exception(f"Could not create database: {e}")
 
 
 def create_tables():
-
+    """
+    Creates all required tables inside seo_agent_db.
+    Safe to run multiple times — uses IF NOT EXISTS.
+    """
     try:
         conn = mysql.connector.connect(
-            host="localhost",
-            port=3306,
-            user="root",
+            host=os.getenv("DB_HOST", "localhost"),
+            port=int(os.getenv("DB_PORT", 3306)),
+            user=os.getenv("DB_USER", "root"),
             password=os.getenv("DB_PASSWORD", ""),
-            database="seo_agent_db"
+            database=os.getenv("DB_NAME", "seo_agent_db")
         )
         cursor = conn.cursor()
 
@@ -52,7 +67,7 @@ def create_tables():
                 total_analyses  INT DEFAULT 1
             )
         """)
-        print(" Table 'sites' ready.")
+        print("Table 'sites' ready.")
 
         # ── Table 2: seo_reports ─────────────────────────────────────
         # Stores SEO analysis results for each site
@@ -99,10 +114,11 @@ def create_tables():
                 -- Timestamp
                 analyzed_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
                 
+                UNIQUE KEY unique_site (site_id),
                 FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
             )
         """)
-        print(" Table 'seo_reports' ready.")
+        print("Table 'seo_reports' ready.")
 
         # ── Table 3: accessibility_reports ──────────────────────────
         # Stores accessibility analysis results for each site
@@ -145,10 +161,11 @@ def create_tables():
                 -- Timestamp
                 analyzed_at                 DATETIME DEFAULT CURRENT_TIMESTAMP,
                 
+                UNIQUE KEY unique_site (site_id),
                 FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
             )
         """)
-        print(" Table 'accessibility_reports' ready.")
+        print("Table 'accessibility_reports' ready.")
 
         # ── Table 4: content_reports ─────────────────────────────────
         # Stores content quality results for each site
@@ -185,10 +202,11 @@ def create_tables():
                 -- Timestamp
                 analyzed_at             DATETIME DEFAULT CURRENT_TIMESTAMP,
                 
+                UNIQUE KEY unique_site (site_id),
                 FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
             )
         """)
-        print(" Table 'content_reports' ready.")
+        print("Table 'content_reports' ready.")
 
         # ── Table 5: db_operation_logs ───────────────────────────────
         # Logs every database operation for auditing and safety
@@ -204,19 +222,19 @@ def create_tables():
                 executed_at     DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        print(" Table 'db_operation_logs' ready.")
+        print("Table 'db_operation_logs' ready.")
 
         conn.commit()
         cursor.close()
         conn.close()
-        print("\n All tables created successfully!")
+        print("\nAll tables created successfully!")
 
     except Error as e:
-        raise Exception(f" Could not create tables: {e}")
+        raise Exception(f"Could not create tables: {e}")
 
 
 if __name__ == "__main__":
-    print(" Setting up SEO Agent Database...\n")
+    print("Setting up SEO Agent Database...\n")
     create_database()
     create_tables()
-    print("\n Database setup complete! You can now run the app.")
+    print("\nDatabase setup complete!")
