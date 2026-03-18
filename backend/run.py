@@ -4,23 +4,20 @@ run.py
 Entry point for testing the agent from backend/ folder.
 Run with: python3 run.py
 """
-
 import asyncio
 from agent.graph import agent_graph
 from langchain_core.messages import HumanMessage
 
 
 async def test():
-    url     = input("Enter URL to analyze: ").strip()
-    message = input("What would you like to do?: ").strip()
+    message = input("Enter your request: ").strip()
 
     print(f"\n{'='*50}")
-    print(f"Running agent for: {url}")
+    print(f"Request: {message}")
     print(f"{'='*50}\n")
 
     result = await agent_graph.ainvoke({
-        "messages": [HumanMessage(content=f"{message} for {url}")],
-        "url":      url
+        "messages": [HumanMessage(content=message)],
     })
 
     print("\n" + "="*50)
@@ -30,5 +27,4 @@ async def test():
 
 
 asyncio.run(test())
-
-#  https://www.globalwebproduction.com/about
+# example: do seo analysis for https://www.globalwebproduction.com/about
